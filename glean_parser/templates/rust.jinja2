@@ -10,8 +10,8 @@ Jinja2 template is not. Please file bugs! #}
 
 {%- macro generate_structure(name, struct) %}
 {%- if struct.type == "oneof" -%}
-    #[derive(Debug, Hash, Eq, PartialEq, Clone, ::glean::traits::__serde::Serialize, ::glean::traits::__serde::Deserialize)]
-    #[serde(crate = "::glean::traits::__serde")]
+    #[derive(Debug, Hash, Eq, PartialEq, Clone, glean::traits::__serde::Serialize, glean::traits::__serde::Deserialize)]
+    #[serde(crate = "glean::traits::__serde")]
     #[serde(untagged)]
     pub enum {{ name }} {
         {% for ty in struct.subtypes %}
@@ -24,14 +24,14 @@ Jinja2 template is not. Please file bugs! #}
     {{ generate_structure(name ~ "Item", struct["items"]) }}
 
 {% elif struct.type == "object" %}
-    #[derive(Debug, Hash, Eq, PartialEq, Clone, ::glean::traits::__serde::Serialize, ::glean::traits::__serde::Deserialize)]
-    #[serde(crate = "::glean::traits::__serde")]
+    #[derive(Debug, Hash, Eq, PartialEq, Clone, glean::traits::__serde::Serialize, glean::traits::__serde::Deserialize)]
+    #[serde(crate = "glean::traits::__serde")]
     #[serde(deny_unknown_fields)]
     pub struct {{ name }} {
         {% for itemname, val in struct.properties.items() %}
           #[serde(rename = "{{ itemname }}")]
           {% if val.type == "array" %}
-          #[serde(skip_serializing_if = "Vec::is_empty", default = "Vec::new", deserialize_with = "::glean::traits::__serde_helper::vec_null")]
+          #[serde(skip_serializing_if = "Vec::is_empty", default = "Vec::new", deserialize_with = "glean::traits::__serde_helper::vec_null")]
           pub {{itemname|snake_case}}: {{ name ~ itemname|Camelize }},
           {% elif val.type == "object" %}
           #[serde(skip_serializing_if = "Option::is_none")]
@@ -113,8 +113,8 @@ CommonMetricData {
 #[allow(non_upper_case_globals, dead_code)]
 /// {{ obj.description|wordwrap() | replace('\n', '\n/// ') }}
 #[rustfmt::skip]
-pub static {{ obj.name|snake_case }}: ::glean::private::__export::Lazy<::glean::private::PingType> =
-    ::glean::private::__export::Lazy::new(|| ::glean::private::PingType::new("{{ obj.name }}", {{ obj.include_client_id|rust }}, {{ obj.send_if_empty|rust }}, {{ obj.precise_timestamps|rust }}, {{ obj.include_info_sections|rust }}, {{ obj.enabled|rust }}, {{ obj.schedules_pings|rust }}, {{ obj.reason_codes|rust }}, {{ obj.follows_collection_enabled|rust }}, {{ obj.uploader_capabilities|rust }}));
+pub static {{ obj.name|snake_case }}: glean::private::__export::Lazy<glean::private::PingType> =
+    glean::private::__export::Lazy::new(|| glean::private::PingType::new("{{ obj.name }}", {{ obj.include_client_id|rust }}, {{ obj.send_if_empty|rust }}, {{ obj.precise_timestamps|rust }}, {{ obj.include_info_sections|rust }}, {{ obj.enabled|rust }}, {{ obj.schedules_pings|rust }}, {{ obj.reason_codes|rust }}, {{ obj.follows_collection_enabled|rust }}, {{ obj.uploader_capabilities|rust }}));
 {% endfor %}
 {% else %}
 pub mod {{ category.name|snake_case }} {
@@ -133,7 +133,7 @@ pub mod {{ category.name|snake_case }} {
     /// generated from {{ category.name }}.{{ obj.name }}
     ///
     /// {{ obj.description|wordwrap() | replace('\n', '\n    /// ') }}
-    pub static {{ obj.name|snake_case }}: ::glean::private::__export::Lazy<{{ obj|type_name }}> = ::glean::private::__export::Lazy::new(|| {
+    pub static {{ obj.name|snake_case }}: glean::private::__export::Lazy<{{ obj|type_name }}> = glean::private::__export::Lazy::new(|| {
         let meta =
             {% if obj.type == "labeled_custom_distribution" %}
             LabeledMetricData::CustomDistribution {
